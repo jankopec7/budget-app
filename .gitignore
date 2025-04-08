@@ -1,0 +1,17 @@
+# Ignorowanie katalogu venv
+venv/
+
+# Ignorowanie plików pycache
+__pycache__/
+
+# Ignorowanie pliku z wymaganą konfiguracją
+*.pyc
+
+# Ignorowanie pliku db
+*.db
+
+# Ignorowanie pliku .env, jeśli używasz zmiennych środowiskowych
+.env
+
+# Ignorowanie plików logów
+*.log
