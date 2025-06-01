@@ -1,26 +1,39 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
 
-# Inicjalizacja aplikacji i bazy danych
-app = Flask(__name__)
-CORS(app)
+# Inicjalizacja bazy danych (obiekt db do współdzielenia)
+db = SQLAlchemy()
 
-# Konfiguracja bazy danych (PostgreSQL, ale można użyć SQLite)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://jk:xkop@localhost/budget_db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+def create_app():
+    app = Flask(__name__)
+    CORS(app)
 
-db = SQLAlchemy(app)
+    # Konfiguracja bazy danych
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://jk:xkop@db:5432/budget_db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Modele
-from models.transaction import Transaction
+    # Inicjalizacja bazy z aplikacją
+    db.init_app(app)
 
-@app.route('/')
-def home():
-    return jsonify({"message": "Fintracker backend is live!"})
+    # Import modeli (żeby SQLAlchemy je znał)
+    from models.transaction import Transaction
+
+    # Import i rejestracja blueprintów
+    from routes.transaction_routes import transaction_bp
+    app.register_blueprint(transaction_bp)
+
+    @app.route('/')
+    def home():
+        return jsonify({"message": "Fintracker backend is live!"})
+
+    # Tworzenie tabel przy pierwszym uruchomieniu (opcjonalnie)
+    with app.app_context():
+        db.create_all()
+
+    return app
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Tworzy tabele w bazie danych, jeśli jeszcze nie istnieją
-    app.run(debug=True)
+    app = create_app()
+    app.run(host='0.0.0.0', port=5000, debug=True)
+
