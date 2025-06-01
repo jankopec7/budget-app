@@ -1,32 +1,39 @@
 <template>
-  <div>
-    <h2>Rejestracja</h2>
-    <form @submit.prevent="register">
-      <input v-model="username" placeholder="Login" required />
-      <input v-model="password" type="password" placeholder="Hasło" required />
-      <button type="submit">Zarejestruj</button>
-    </form>
-    <p>{{ message }}</p>
+  <div class="auth-container">
+    <div class="auth-card">
+      <span class="material-icons icon">person_add</span>
+      <h2>Create an Account</h2>
+      <p>Join Fintracker and start managing your finances smartly.</p>
+
+      <form @submit.prevent="handleRegister">
+        <input type="email" placeholder="Email" v-model="email" required />
+        <input type="password" placeholder="Password" v-model="password" required />
+        <button class="primary" type="submit">Register</button>
+      </form>
+
+      <p class="bottom-text">
+        Already have an account?
+        <router-link to="/login">Login here</router-link>
+      </p>
+    </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import axios from 'axios'
-
-const username = ref('')
-const password = ref('')
-const message = ref('')
-
-const register = async () => {
-  try {
-    const res = await axios.post('/api/register', {
-      username: username.value,
-      password: password.value
-    })
-    message.value = res.data.msg
-  } catch (err) {
-    message.value = err.response?.data?.msg || 'Błąd rejestracji'
+<script>
+export default {
+  data() {
+    return {
+      email: '',
+      password: ''
+    };
+  },
+  methods: {
+    handleRegister() {
+      // tu możesz dodać faktyczną logikę rejestracji
+      console.log('Register:', this.email, this.password);
+      alert('Account created successfully!');
+      this.$router.push('/login');
+    }
   }
-}
+};
 </script>

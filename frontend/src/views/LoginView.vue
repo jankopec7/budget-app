@@ -1,34 +1,33 @@
 <template>
-  <div>
-    <h2>Logowanie</h2>
-    <form @submit.prevent="login">
-      <input v-model="username" placeholder="Login" required />
-      <input v-model="password" type="password" placeholder="Hasło" required />
-      <button type="submit">Zaloguj</button>
-    </form>
-    <p>{{ message }}</p>
+  <div class="auth-container">
+    <div class="auth-card">
+      <span class="material-icons icon">login</span>
+      <h2>Welcome Back</h2>
+      <p>Sign in to your Fintracker account</p>
+
+      <form @submit.prevent="handleLogin">
+        <input type="email" placeholder="Email" v-model="email" required />
+        <input type="password" placeholder="Password" v-model="password" required />
+        <button class="primary" type="submit">Login</button>
+      </form>
+
+      <p class="bottom-text">
+        Don't have an account?
+        <router-link to="/register">Register here</router-link>
+      </p>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import axios from 'axios'
+import { ref } from 'vue';
 
-const username = ref('')
-const password = ref('')
-const message = ref('')
+const email = ref('');
+const password = ref('');
 
-const login = async () => {
-  try {
-    const res = await axios.post('/api/login', {
-      username: username.value,
-      password: password.value
-    })
-    message.value = 'Zalogowano!'
-    localStorage.setItem('token', res.data.access_token)
-  } catch (err) {
-    message.value = err.response?.data?.msg || 'Błąd logowania'
-  }
+function handleLogin() {
+  // logika logowania
+  console.log('Login attempt:', email.value, password.value);
 }
 </script>
 
