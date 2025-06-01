@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from flasgger import Swagger
 from models import db
 from models.user import User
@@ -55,6 +56,12 @@ swagger_template = {
 swagger = Swagger(app, config=swagger_config, template=swagger_template)
 app.register_blueprint(auth_bp)
 app.register_blueprint(transaction_bp)
+
+@app.route('/profile', methods=['GET'])
+@jwt_required()
+def profile():
+    identity = get_jwt_identity()
+    return jsonify({"email": identity})
 
 @app.route('/')
 def home():

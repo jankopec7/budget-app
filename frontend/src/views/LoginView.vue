@@ -20,14 +20,34 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const email = ref('');
-const password = ref('');
+const router = useRouter()
+const email = ref('')
+const password = ref('')
 
-function handleLogin() {
-  // logika logowania
-  console.log('Login attempt:', email.value, password.value);
+async function handleLogin() {
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.value, password: password.value })
+    })
+
+    const data = await res.json()
+
+    if (res.ok && data.access_token) {
+      localStorage.setItem('token', data.access_token)
+      localStorage.setItem('user', JSON.stringify({ email: email.value }))
+      router.push('/dashboard')
+    } else {
+      alert(data.msg || 'Login failed')
+    }
+  } catch (error) {
+    console.error('Login error:', error)
+    alert('Unexpected error during login.')
+  }
 }
 </script>
 

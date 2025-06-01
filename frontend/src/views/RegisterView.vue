@@ -19,21 +19,43 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      email: '',
-      password: ''
-    };
-  },
-  methods: {
-    handleRegister() {
-      // tu możesz dodać faktyczną logikę rejestracji
-      console.log('Register:', this.email, this.password);
-      alert('Account created successfully!');
-      this.$router.push('/login');
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const email = ref('')
+const password = ref('')
+const router = useRouter()
+
+async function handleRegister() {
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.value, password: password.value })
+    })
+
+    const data = await res.json()
+    if (!res.ok) return alert(data.msg || 'Registration failed')
+
+    // Automatyczne logowanie po rejestracji
+    const loginRes = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.value, password: password.value })
+    })
+
+    const loginData = await loginRes.json()
+    if (loginRes.ok) {
+      localStorage.setItem('token', loginData.access_token)
+      localStorage.setItem('user', JSON.stringify({ email: email.value }))
+      router.push('/dashboard')
+    } else {
+      router.push('/login')
     }
+  } catch (err) {
+    console.error(err)
+    alert('Unexpected error during registration.')
   }
-};
+}
 </script>

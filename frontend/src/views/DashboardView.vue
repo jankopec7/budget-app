@@ -43,24 +43,17 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-
-// Import components
 import DashboardNavbar from '@/components/dashboard/DashboardNavbar.vue'
 import SummaryCards from '@/components/dashboard/SummaryCard.vue'
 import TransactionForm from '@/components/dashboard/AddTransactionForm.vue'
 import RecentTransactions from '@/components/dashboard/RecentTransactions.vue'
 import FinancialInsights from '@/components/dashboard/FinancialInsights.vue'
 
-
 const router = useRouter()
 
-// User data
 const userEmail = ref('')
-const userInitials = computed(() => {
-  return userEmail.value.charAt(0).toUpperCase()
-})
+const userInitials = computed(() => userEmail.value.charAt(0).toUpperCase())
 
-// Transactions
 const transactions = ref([])
 const newTransaction = ref({
   type: 'expense',
@@ -76,15 +69,6 @@ const categories = ref([
   'Investment', 'Salary', 'Freelance', 'Other'
 ])
 
-const sampleTransactions = [
-  { id: 1, date: '2024-01-15', description: 'Groceries', category: 'Food & Dining', type: 'expense', amount: -75.30 },
-  { id: 2, date: '2024-01-14', description: 'Salary', category: 'Salary', type: 'income', amount: 3500.00 },
-  { id: 3, date: '2024-01-13', description: 'Gasoline', category: 'Transportation', type: 'expense', amount: -45.00 },
-  { id: 4, date: '2024-01-12', description: 'Dinner', category: 'Food & Dining', type: 'expense', amount: -89.50 },
-  { id: 5, date: '2024-01-10', description: 'Freelance Payment', category: 'Freelance', type: 'income', amount: 800.00 }
-]
-
-// Computed
 const totalIncome = computed(() =>
   transactions.value.filter(t => t.type === 'income')
     .reduce((sum, t) => sum + Math.abs(t.amount), 0)
@@ -101,71 +85,82 @@ const recentTransactions = computed(() =>
   [...transactions.value].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
 )
 
-// Charts
-const monthlyData = ref([
-  { month: 'Jan', income: 4000, expenses: 2800 },
-  { month: 'Feb', income: 3200, expenses: 2400 },
-  { month: 'Mar', income: 2800, expenses: 3200 },
-  { month: 'Apr', income: 3600, expenses: 2600 },
-  { month: 'May', income: 2400, expenses: 2800 },
-  { month: 'Jun', income: 3800, expenses: 2200 },
-  { month: 'Jul', income: 4200, expenses: 3000 }
-])
+const monthlyData = ref([]) // TODO: można dodać generowanie z transakcji
+const expenseCategories = ref([]) // jw.
 
-const expenseCategories = ref([
-  { name: 'Food', percentage: 35, color: '#2d6a4f' },
-  { name: 'Shopping', percentage: 25, color: '#52b788' },
-  { name: 'Transport', percentage: 20, color: '#74c69d' },
-  { name: 'Bills', percentage: 12, color: '#95d5b2' },
-  { name: 'Other', percentage: 8, color: '#b7e4c7' }
-])
+const addTransaction = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const payload = {
+      amount: Math.abs(newTransaction.value.amount) * (newTransaction.value.type === 'expense' ? -1 : 1),
+      category: newTransaction.value.category,
+      description: newTransaction.value.description,
+      date: newTransaction.value.date
+    }
 
-// Methods
-const addTransaction = () => {
-  const transaction = {
-    id: Date.now(),
-    ...newTransaction.value,
-    amount: newTransaction.value.type === 'income'
-      ? Math.abs(newTransaction.value.amount)
-      : -Math.abs(newTransaction.value.amount)
+    const res = await fetch('/api/transactions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (res.ok) {
+      await fetchTransactions()
+      newTransaction.value = {
+        type: 'expense',
+        description: '',
+        amount: 0,
+        category: '',
+        date: new Date().toISOString().split('T')[0]
+      }
+    } else {
+      const err = await res.json()
+      alert(err.message || 'Failed to add transaction')
+    }
+  } catch (err) {
+    console.error(err)
   }
+}
 
-  transactions.value.push(transaction)
-
-  newTransaction.value = {
-    type: 'expense',
-    description: '',
-    amount: 0,
-    category: '',
-    date: new Date().toISOString().split('T')[0]
+const fetchTransactions = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const res = await fetch('/api/transactions', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (res.ok) transactions.value = data
+    else throw new Error(data.message || 'Failed to fetch transactions')
+  } catch (err) {
+    console.error('Fetch error:', err)
   }
 }
 
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('en-US', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
+    day: '2-digit', month: '2-digit', year: 'numeric'
   })
 }
 
 const handleLogout = () => {
+  localStorage.removeItem('token')
   localStorage.removeItem('user')
   sessionStorage.removeItem('user')
-  router.push('/')
+  router.push({ path: '/' }) // przekierowanie na HomeView
 }
 
-// Mount logic
-onMounted(() => {
+onMounted(async () => {
   const storedUser = JSON.parse(localStorage.getItem('user'))
-  if (storedUser?.email) {
-    userEmail.value = storedUser.email
-  }
+  if (storedUser?.email) userEmail.value = storedUser.email
 
-  transactions.value = [...sampleTransactions]
+  await fetchTransactions()
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', () => {})
 })
 </script>
+
