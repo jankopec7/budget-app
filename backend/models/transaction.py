@@ -1,6 +1,5 @@
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from . import db
+from datetime import datetime
 
 class Transaction(db.Model):
     __tablename__ = 'transactions'
@@ -13,3 +12,4 @@ class Transaction(db.Model):
 
     def __repr__(self):
         return f'<Transaction {self.amount} - {self.category}>'
+

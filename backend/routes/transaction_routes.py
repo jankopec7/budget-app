@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
-from models.transaction import db, Transaction
+from models import db
+from models.transaction import Transaction
 from datetime import datetime
 
 transaction_bp = Blueprint('transaction_bp', __name__)
@@ -30,3 +31,4 @@ def get_transactions():
             'date': t.date.strftime('%Y-%m-%d')
         })
     return jsonify(result)
+

@@ -15,3 +15,10 @@ __pycache__/
 
 # Ignorowanie plików logów
 *.log
+
+# Ignorowanie katalogu docker
+docker/
+
+# Frontend node modules
+frontend/node_modules/
+
