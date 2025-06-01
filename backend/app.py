@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-
+from flasgger import Swagger
 from models import db
 from models.user import User
 from models.transaction import Transaction
@@ -18,6 +18,41 @@ app.config['JWT_SECRET_KEY'] = 'tajny_klucz'
 db.init_app(app)
 jwt = JWTManager(app)
 
+# Swagger konfiguracja
+swagger_config = {
+    "headers": [],
+    "specs": [
+        {
+            "endpoint": 'apispec',
+            "route": '/apispec.json',
+            "rule_filter": lambda rule: True,  # wszystkie endpointy
+            "model_filter": lambda tag: True,
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    "swagger_ui": True,
+    "specs_route": "/docs"  # <- dokumentacja dostępna pod /docs
+}
+
+swagger_template = {
+    "swagger": "2.0",
+    "info": {
+        "title": "Fintracker API",
+        "description": "Dokumentacja API dla budżetowej aplikacji Fintracker",
+        "version": "1.0.0",
+    },
+    "basePath": "/",
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "Dodaj token jako: **Bearer &lt;JWT&gt;**"
+        }
+    }
+}
+
+swagger = Swagger(app, config=swagger_config, template=swagger_template)
 app.register_blueprint(auth_bp)
 app.register_blueprint(transaction_bp)
 

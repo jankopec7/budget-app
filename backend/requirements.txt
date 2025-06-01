@@ -14,3 +14,4 @@ sqlalchemy==2.0.40
 typing-extensions==4.13.1
 werkzeug==3.0.6
 zipp==3.20.2
+flasgger==0.9.7.1
