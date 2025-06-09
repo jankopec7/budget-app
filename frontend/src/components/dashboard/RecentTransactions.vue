@@ -5,7 +5,7 @@
       <p>A quick overview of your latest financial activities.</p>
     </div>
 
-    <div class="transactions-table">
+    <div class="transactions-table" v-if="transactions.length">
       <div class="table-header">
         <span>Date</span>
         <span>Description</span>
@@ -38,6 +38,10 @@
       </div>
     </div>
 
+    <div v-else class="no-transactions">
+      <p>No recent transactions yet.</p>
+    </div>
+
     <div class="table-footer">
       <small>A list of your recent transactions.</small>
     </div>
@@ -46,7 +50,10 @@
 
 <script setup>
 const props = defineProps({
-  transactions: Array
+  transactions: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const formatDate = (dateString) => {
@@ -57,4 +64,3 @@ const formatDate = (dateString) => {
   })
 }
 </script>
-

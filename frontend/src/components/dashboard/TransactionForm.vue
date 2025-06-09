@@ -77,39 +77,18 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { reactive } from 'vue'
 
 const props = defineProps({
   categories: Array,
+  newTransaction: Object
 })
 
-const emit = defineEmits(['add'])
+const emit = defineEmits(['submit'])
 
-const transaction = reactive({
-  type: 'expense',
-  description: '',
-  amount: 0,
-  category: '',
-  date: new Date().toISOString().split('T')[0]
-})
+const transaction = reactive({ ...props.newTransaction })
 
 const handleSubmit = () => {
-  const newEntry = {
-    ...transaction,
-    id: Date.now(),
-    amount:
-      transaction.type === 'income'
-        ? Math.abs(transaction.amount)
-        : -Math.abs(transaction.amount)
-  }
-
-  emit('add', newEntry)
-
-  // Reset form
-  transaction.type = 'expense'
-  transaction.description = ''
-  transaction.amount = 0
-  transaction.category = ''
-  transaction.date = new Date().toISOString().split('T')[0]
+  emit('submit', { ...transaction }) // PRZEKAZUJEMY DANE DO RODZICA
 }
 </script>

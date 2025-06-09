@@ -6,8 +6,18 @@
       <p>Sign in to your Fintracker account</p>
 
       <form @submit.prevent="handleLogin">
-        <input type="email" placeholder="Email" v-model="email" required />
-        <input type="password" placeholder="Password" v-model="password" required />
+        <input
+          type="email"
+          placeholder="Email"
+          v-model="email"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          v-model="password"
+          required
+        />
         <button class="primary" type="submit">Login</button>
       </form>
 

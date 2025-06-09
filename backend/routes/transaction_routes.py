@@ -11,7 +11,7 @@ transaction_bp = Blueprint('transaction_bp', __name__)
 @jwt_required()
 def add_transaction():
     """
-    Dodawanie nowej transakcji
+    Add a new transaction
     ---
     tags:
       - Transactions
@@ -19,7 +19,7 @@ def add_transaction():
       - Bearer: []
     parameters:
       - in: body
-        name: body
+        name: transaction
         required: true
         schema:
           type: object
@@ -27,51 +27,96 @@ def add_transaction():
             - amount
             - category
             - date
+            - type
           properties:
             amount:
               type: number
-              example: 250.75
+              example: 100.50
             category:
               type: string
-              example: Salary
+              example: Groceries
             description:
               type: string
-              example: Monthly paycheck
+              example: Bought food for the week
             date:
               type: string
               format: date
               example: 2024-06-01
+            type:
+              type: string
+              enum: [income, expense]
+              example: expense
     responses:
       201:
-        description: Transakcja dodana pomyślnie
+        description: Transaction added successfully
       400:
-        description: Błąd dodawania transakcji
+        description: Invalid input or type
+      404:
+        description: User not found
     """
     data = request.get_json()
+    print(">>> OTRZYMANE DANE:", data)
+    print(">>> AMOUNT PRZED RZUTOWANIEM:", data.get('amount'))
+    print(">>> DATA PRZED PARSOWANIEM:", data.get('date'))
+    # Walidacja wymaganych pól
+    required_fields = ['amount', 'category', 'date', 'type']
+    missing_fields = [f for f in required_fields if not data.get(f)]
+
+    if missing_fields:
+      return jsonify({"error": f"Missing or empty fields: {', '.join(missing_fields)}"}), 400
+
+    if float(data.get('amount', 0)) == 0:
+      return jsonify({"error": "Amount cannot be zero"}), 400
+    
     current_user = get_jwt_identity()
     user = User.query.filter_by(email=current_user).first()
 
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    new_transaction = Transaction(
-        amount=data['amount'],
-        category=data['category'],
-        description=data.get('description'),
-        date=datetime.strptime(data['date'], '%Y-%m-%d'),
-        user_id=user.id
-    )
+    # ✅ Rzutowanie kwoty do float
+    try:
+        amount = float(data['amount'])
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid amount format"}), 400
 
-    db.session.add(new_transaction)
-    db.session.commit()
-    return jsonify({"message": "Transaction added successfully!"}), 201
+    if data.get('type') == 'expense':
+        amount = -abs(amount)
+    elif data.get('type') == 'income':
+        amount = abs(amount)
+    else:
+        return jsonify({"error": "Invalid transaction type"}), 400
+
+    try:
+        # ✅ Obsługa dwóch formatów daty
+        raw_date = data['date']
+        try:
+            parsed_date = datetime.strptime(raw_date, '%Y-%m-%d')
+        except ValueError:
+            parsed_date = datetime.strptime(raw_date, '%d.%m.%Y')
+
+        new_transaction = Transaction(
+            amount=amount,
+            category=data['category'],
+            description=data.get('description'),
+            date=parsed_date,
+            user_id=user.id
+        )
+        db.session.add(new_transaction)
+        db.session.commit()
+        return jsonify({"message": "Transaction added successfully!"}), 201
+    except Exception as e:
+        import traceback
+        traceback.print_exc()  # <- wypisze błąd w terminalu!
+        print("BŁĄD:", str(e))  # <- dodatkowy log
+        return jsonify({"error": str(e)}), 400
 
 
 @transaction_bp.route('/transactions', methods=['GET'])
 @jwt_required()
 def get_transactions():
     """
-    Pobierz wszystkie transakcje użytkownika
+    Get all transactions for the current user
     ---
     tags:
       - Transactions
@@ -79,7 +124,7 @@ def get_transactions():
       - Bearer: []
     responses:
       200:
-        description: Lista transakcji
+        description: List of user transactions
         schema:
           type: array
           items:
@@ -87,18 +132,26 @@ def get_transactions():
             properties:
               id:
                 type: integer
+                example: 1
               amount:
                 type: number
+                example: 59.99
               category:
                 type: string
+                example: Utilities
               description:
                 type: string
+                example: Paid electricity bill
               date:
                 type: string
                 format: date
+                example: 2024-06-05
               type:
                 type: string
                 enum: [income, expense]
+                example: expense
+      404:
+        description: User not found
     """
     current_user = get_jwt_identity()
     user = User.query.filter_by(email=current_user).first()
@@ -110,7 +163,7 @@ def get_transactions():
 
     result = [{
         'id': t.id,
-        'amount': t.amount,
+        'amount': abs(t.amount),
         'category': t.category,
         'description': t.description,
         'date': t.date.strftime('%Y-%m-%d'),

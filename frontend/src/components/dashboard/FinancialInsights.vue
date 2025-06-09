@@ -3,8 +3,8 @@
     <h2>Financial Insights</h2>
 
     <div class="charts-grid">
-      <MonthlyOverviewChart :data="monthlyData" />
-      <ExpenseBreakdownChart :categories="expenseCategories" />
+      <MonthlyOverviewChart v-if="monthlyData.length" :data="monthlyData" />
+      <ExpenseBreakdownChart v-if="expenseCategories.length" :categories="expenseCategories" />
     </div>
   </div>
 </template>
@@ -24,3 +24,4 @@ const props = defineProps({
   }
 })
 </script>
+
