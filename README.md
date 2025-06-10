@@ -1,38 +1,51 @@
 # Fintracker
 
 **Projekt z przedmiotu: Zaawansowane Techniki Programowania**  
-Aplikacja do zarządzania budżetem osobistym.
+Aplikacja webowa do zarządzania budżetem osobistym — pozwala śledzić przychody, wydatki, analizować finanse i generować wizualizacje.
 
 ---
-
-## 📌 Opis
-
-**Fintracker** to aplikacja umożliwiająca śledzenie wydatków i przychodów, tworzenie miesięcznych raportów oraz kategoryzację transakcji. Narzędzie zostało stworzone z myślą o użytkownikach, którzy chcą lepiej kontrolować swoje finanse.
-
----
-
 ## 🧩 Główne funkcje
 
 - ✅ Dodawanie transakcji (przychody i wydatki)  
 - 📂 Kategoryzowanie transakcji (np. *Jedzenie*, *Rozrywka*, *Transport*)  
-- 📊 Generowanie raportów miesięcznych  
+- 📊 Dashboard z kartami podsumowania
 - 🔐 Autoryzacja użytkowników  
+- ✅ Historia ostatnich transakcji
+- ✅ Kategorie + procentowy udział wydatków
+- ✅ Autoryzacja JWT
+- ✅ Responsywny UI
+
 
 ---
 
 ## 🛠️ Technologie
 
-- **Backend:** Flask  
-- **Frontend:** Vue.js  
-- **Baza danych:** PostgreSQL  
-- **Wykresy:** Chart.js  
-- **Konteneryzacja:** Docker  
+| Warstwa              | Stos technologiczny                   |
+| -------------------- | ------------------------------------- |
+| **Frontend**         | Vue 3, Chart.js                       |
+| **Backend**          | Flask, Flask-JWT-Extended, SQLAlchemy |
+| **Baza danych**      | PostgreSQL                            |
+| **Testy**            | Pytest                                |
+| **Dokumentacja API** | Flasgger                              |
+
 
 ---
 
 ## 🚀 Uruchamianie
 
-Projekt jest przygotowany do działania w środowisku kontenerowym Docker.
 
+Backend:
 ```bash
-docker-compose up --build
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python3 app.py
+```
+
+Frontend:
+```bash
+cd frontend
+npm install
+npm run dev
+```
